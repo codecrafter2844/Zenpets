@@ -29,6 +29,11 @@ const Planner = () => {
     const today = new Date().toISOString().split("T")[0];
     const [selectedDate, setSelectedDate] = useState<string>(today);
     const [tasks, setTasks] = useState<Record<string, Task[]>>({});
+    const isPastDate = selectedDate < today;
+    const formatDate = (date: string) => {
+        const [y, m, d] = date.split("-");
+        return `${d}-${m}-${y}`;
+    };
 
     const openAddTaskModal = () => {
         if (!selectedDate) {
@@ -69,8 +74,11 @@ const Planner = () => {
     return (
         <ImageBackground source={require('../../assets/images/bg.jpg')} style={styles.bg}>
             <View style={styles.container}>
+                <Text style={styles.plannerTitle}>📅 Planner</Text>
+
                 {/* Calendar */}
-                <View style={styles.calendar}>
+                <View style={styles.calendarWrapper}>
+                    <View style={styles.calendar}></View>
                     <Calendar
                         onDayPress={day => setSelectedDate(day.dateString)}
                         markedDates={{
@@ -120,7 +128,7 @@ const Planner = () => {
                 {/* Task Section */}
                 <View style={styles.taskContainer}>
                     <Text style={styles.dateText}>
-                        {selectedDate || "Select a date"}
+                        {selectedDate ? formatDate(selectedDate) : "Select a date"}
                     </Text>
 
                     <FlatList
@@ -174,26 +182,35 @@ const Planner = () => {
                     />
 
                     {/* Add Task Button */}
-                    <TouchableOpacity style={styles.addBtn} onPress={openAddTaskModal}>
+                    <TouchableOpacity
+                        style={[
+                            styles.addBtn,
+                            isPastDate && { backgroundColor: "#ccc" },
+                        ]}
+                        onPress={openAddTaskModal}
+                        disabled={isPastDate}
+                    >
                         <Ionicons name="add" size={26} color="#fff" />
                         <Text style={styles.addText}>Add Task</Text>
                     </TouchableOpacity>
+
                 </View>
             </View>
             <Modal visible={showModal} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalBox}>
-                        <Text style={styles.modalDate}>{selectedDate}</Text>
+                        <Text style={styles.modalDate}>{formatDate(selectedDate)}</Text>
+
 
                         <TextInput
-                            placeholder="Task name"
+                            placeholder="Title"
                             value={taskTitle}
                             onChangeText={setTaskTitle}
                             style={styles.input}
                         />
 
                         <TextInput
-                            placeholder="Task description"
+                            placeholder="Description"
                             value={taskDesc}
                             onChangeText={setTaskDesc}
                             style={[styles.input, { height: 80 }]}
@@ -233,6 +250,7 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         elevation: 6, // Android
         shadowColor: "#000", // iOS + Web
+        overflow: "hidden",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
         shadowRadius: 6,
@@ -323,6 +341,10 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    calendarWrapper: {
+        marginHorizontal: 12,   // 👈 SAME as taskContainer
+        marginBottom: 12,
+    },
     taskText: {
         fontSize: 14,
         fontWeight: "500",
@@ -332,5 +354,13 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: "#666",
         lineHeight: 18,
+    },
+    plannerTitle: {
+        fontSize: 24,
+        fontWeight: "700",
+        textAlign: "center",
+        marginBottom: 14,
+        color: "#2E2E2E",
+        letterSpacing: 0.5,
     }
 });
