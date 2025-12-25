@@ -188,6 +188,11 @@ export default function ExploreScreen() {
             <Text style={styles.menuText}>Streak</Text>
           </Pressable>
 
+          <Pressable style={[styles.menuItem]}>
+            <Text style={styles.menuIcon}>🪨</Text>
+            <Text style={styles.menuText}>Milestone</Text>
+          </Pressable>
+
           <Pressable style={styles.menuItem}>
             <Text style={styles.menuIcon}>🐾</Text>
             <Text style={styles.menuText}>Pet Shop</Text>
