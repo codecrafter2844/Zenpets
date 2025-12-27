@@ -1,4 +1,4 @@
-import { Image } from 'expo-image';
+import { Image } from 'react-native';
 import {
   StyleSheet,
   View,
@@ -16,19 +16,50 @@ import { ThemedText } from '@/components/themed-text';
 import { TextInput } from 'react-native';
 import { router } from 'expo-router';
 
-
-
-
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const MENU_WIDTH = SCREEN_WIDTH * 0.7;
+
+const coinFrames = [
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/1.png'),
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/2.png'),
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/3.png'),
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/4.png'),
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/5.png'),
+  require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/6.png'),
+];
+
+function RotatingCoin() {
+  const frameIndex = useRef(0);        // 🔥 does NOT cause re-render
+  const [, forceUpdate] = useState(0); // 🔥 only forces repaint
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      frameIndex.current =
+        (frameIndex.current + 1) % coinFrames.length;
+
+      forceUpdate(n => n + 1); // repaint image
+    }, 120); // adjust speed here
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Image
+      source={coinFrames[frameIndex.current]}
+      style={styles.coin}
+      resizeMode="contain"
+    />
+  );
+}
+
 
 
 export default function ExploreScreen() {
   const slideAnim = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const [menuOpen, setMenuOpen] = useState(false);
   const [todos, setTodos] = useState<
-  { id: number; text: string; done: boolean }[]
->([]);
+    { id: number; text: string; done: boolean }[]
+  >([]);
 
 
   const toggleTodo = (id: number) => {
@@ -82,7 +113,7 @@ export default function ExploreScreen() {
         <Image
           source={require('../../assets/images/bg.jpg')}
           style={styles.background}
-          contentFit="cover"
+          resizeMode="cover"
         />
 
         {/* Hamburger Menu */}
@@ -94,6 +125,10 @@ export default function ExploreScreen() {
 
         {/* Profile Circle */}
         <View style={styles.Pcircle} />
+        <View style={styles.coinWrapper}>
+          <RotatingCoin />
+        </View>
+
         {/* TODO CARD */}
         <View style={styles.todoCard}>
 
@@ -169,36 +204,38 @@ export default function ExploreScreen() {
         {menuOpen && (
           <Pressable style={styles.overlay} onPress={closeMenu} />
         )}
+
         {/* Slide Menu */}
         <Animated.View
           style={[
             styles.menu,
             { transform: [{ translateX: slideAnim }] },
           ]}
+
         >
           <ThemedText type="title" style={styles.title}>
             Menu
           </ThemedText>
           <Pressable style={[styles.menuItem]}
-          onPress={() => router.push('/(tabs)/planner')}
+            onPress={() => router.push('/(tabs)/planner')}
           >
             <Text style={styles.menuIcon}>🗓️</Text>
             <Text style={styles.menuText}>Planner</Text>
           </Pressable>
 
           <Pressable style={styles.menuItem}
-          onPress={() => router.push('/(tabs)/streak')}>
+            onPress={() => router.push('/(tabs)/streak')}>
             <Text style={styles.menuIcon}>🔥</Text>
             <Text style={styles.menuText}>Streak</Text>
           </Pressable>
 
           <Pressable style={[styles.menuItem]}
-          onPress={() => router.push('/(tabs)/milestone')}>
+            onPress={() => router.push('/(tabs)/milestone')}>
             <Text style={styles.menuIcon}>🪨</Text>
             <Text style={styles.menuText}>Milestone</Text>
           </Pressable>
 
-          <Pressable 
+          <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(tabs)/petshop')}
           >
@@ -246,15 +283,27 @@ const styles = StyleSheet.create({
 
   /* Profile Circle */
   Pcircle: {
-    width: 55,
-    height: 55,
-    borderRadius: 27.5,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     backgroundColor: 'grey',
     position: 'absolute',
-    top: 45,
+    top: 40,
     right: 20,
     zIndex: 10,
   },
+  coin: {
+    width: 27,
+    height: 40,
+  },
+  coinWrapper: {
+    position: 'absolute',
+    top: 42,
+    right: 85,
+    zIndex: 10,
+  },
+
+
 
   /* Overlay */
   overlay: {
