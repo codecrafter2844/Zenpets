@@ -186,12 +186,14 @@ export default function ExploreScreen() {
             <Text style={styles.menuText}>Planner</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem}
+          onPress={() => router.push('/(tabs)/streak')}>
             <Text style={styles.menuIcon}>🔥</Text>
             <Text style={styles.menuText}>Streak</Text>
           </Pressable>
 
-          <Pressable style={[styles.menuItem]}>
+          <Pressable style={[styles.menuItem]}
+          onPress={() => router.push('/(tabs)/milestone')}>
             <Text style={styles.menuIcon}>🪨</Text>
             <Text style={styles.menuText}>Milestone</Text>
           </Pressable>
@@ -244,9 +246,9 @@ const styles = StyleSheet.create({
 
   /* Profile Circle */
   Pcircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
     backgroundColor: 'grey',
     position: 'absolute',
     top: 45,
