@@ -242,7 +242,7 @@ export default function ExploreScreen() {
 
           <Pressable
             style={styles.menuItem}
-            onPress={() => router.push('/(tabs)/petshop')}
+            onPress={() => router.push('/(tabs)/petshop/petshop')}
           >
             <Text style={styles.menuIcon}>🐾</Text>
             <Text style={styles.menuText}>Pet Shop</Text>

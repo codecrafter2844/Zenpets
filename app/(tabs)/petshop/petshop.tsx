@@ -11,6 +11,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
+import { Image } from 'expo-image';
 
 
 const { width } = Dimensions.get('window');
@@ -110,9 +111,13 @@ export default function PetShopScreen() {
                 style={StyleSheet.absoluteFillObject}
             />
 
-            <ThemedText type="title" style={styles.title}>
-                Pet Shop 🐾
-            </ThemedText>
+            <Image
+                source={require('@/assets/images/ribbon_banner.png')}
+                style={styles.banner}
+                contentFit="contain"
+                
+            />
+
 
             {/* TAB BAR */}
             <View style={styles.tabBar} {...panResponder.panHandlers}>
@@ -224,13 +229,12 @@ export default function PetShopScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
 
-    title: {
-        marginTop: 60,
-        marginBottom: 20,
+    banner: {
+        width: '90%',
+        height: 80,
         alignSelf: 'center',
-        fontSize: 30,
-        fontWeight: '800',
-        color: '#1F3C88',
+        marginTop: 50,
+        marginBottom: 12,     
     },
 
     tabBar: {
