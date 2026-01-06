@@ -1,6 +1,8 @@
 // planner.tsx
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
     Alert,
     FlatList,
@@ -13,6 +15,7 @@ import {
     View,
 } from "react-native";
 
+
 import { Calendar } from "react-native-calendars";
 
 type Task = {
@@ -20,6 +23,18 @@ type Task = {
     title: string;
     description: string;
 };
+const BACKGROUNDS = [
+  require("../../assets/themes/bg1.jpg"),
+  require("../../assets/themes/bg2.jpg"),
+  require("../../assets/themes/bg3.jpg"),
+  require("../../assets/themes/bg4.jpg"),
+  require("../../assets/themes/bg5.jpg"),
+  require("../../assets/themes/bg6.jpg"),
+  require("../../assets/themes/bg7.jpg"),
+  require("../../assets/themes/bg8.jpg"),
+  require("../../assets/themes/bg9.png"),
+];
+const DEFAULT_BG = require("../../assets/images/bg.jpg");
 
 const Planner = () => {
     const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
@@ -34,6 +49,25 @@ const Planner = () => {
         const [y, m, d] = date.split("-");
         return `${d}-${m}-${y}`;
     };
+const [bgIndex, setBgIndex] = useState(-1);
+
+useFocusEffect(
+  useCallback(() => {
+    let active = true;
+
+    (async () => {
+      const data = await AsyncStorage.getItem("PROFILE");
+      if (data && active) {
+        const p = JSON.parse(data);
+        setBgIndex(p.bgIndex ?? -1);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [])
+);
 
     const openAddTaskModal = () => {
         if (!selectedDate) {
@@ -72,7 +106,12 @@ const Planner = () => {
     };
 
     return (
-        <ImageBackground source={require('../../assets/images/bg.jpg')} style={styles.bg}>
+        <ImageBackground
+  source={bgIndex === -1 ? DEFAULT_BG : BACKGROUNDS[bgIndex]}
+  resizeMode="cover"
+  style={styles.bg}
+>
+
             <View style={styles.container}>
                 <Text style={styles.plannerTitle}>📅 Planner</Text>
 

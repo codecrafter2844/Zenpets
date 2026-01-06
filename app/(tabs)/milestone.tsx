@@ -1,15 +1,15 @@
-import {
-    StyleSheet,
-    View,
-    Animated,
-    Text,
-    Pressable,
-    Modal,
-    Dimensions,
-} from 'react-native';
-import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +29,7 @@ const generateMilestones = (
             unlocked: day <= taskDoneDay,
         };
     });
+
 
 export default function MilestoneScreen() {
     const [taskDoneDay, setTaskDoneDay] = useState(0);

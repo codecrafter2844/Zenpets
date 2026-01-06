@@ -1,20 +1,35 @@
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Slider from "@react-native-community/slider";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-    FlatList,
-    Image,
-    ImageBackground,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  ImageBackground,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
+const BACKGROUNDS = [
+  require("../../assets/themes/bg1.jpg"),
+  require("../../assets/themes/bg2.jpg"),
+  require("../../assets/themes/bg3.jpg"),
+  require("../../assets/themes/bg4.jpg"),
+  require("../../assets/themes/bg5.jpg"),
+  require("../../assets/themes/bg6.jpg"),
+  require("../../assets/themes/bg7.jpg"),
+  require("../../assets/themes/bg8.jpg"),
+  require("../../assets/themes/bg9.png"),
+];
+const DEFAULT_BG = require("../../assets/images/bg.jpg");
+
 const ACCENT = "#6C63FF";
+const DEFAULT_AVATAR = require("../../assets/avatar/default profile.jpg");
 
 const AVATARS = [
   require("../../assets/avatar/av1.jpg"),
@@ -23,14 +38,26 @@ const AVATARS = [
   require("../../assets/avatar/av4.jpg"),
 
 ];
+const DEFAULT_PROFILE = {
+  username: "",
+  email: "",
+  mobile: "",
+  avatar: -1,      // default avatar index
+  verified: false,
+};
+
 
 export default function Settings() {
   const navigation = useNavigation<any>();
 
+  const [themeModal, setThemeModal] = useState(false);
+  const [bgIndex, setBgIndex] = useState(-1);
+
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
-  const [avatar, setAvatar] = useState(0);
+  const [avatar, setAvatar] = useState(-1);
 
   const [verified, setVerified] = useState(false);
   const [otp, setOtp] = useState("");
@@ -38,6 +65,25 @@ export default function Settings() {
   const [otpModal, setOtpModal] = useState(false);
   const [avatarModal, setAvatarModal] = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
+
+  const [soundModal, setSoundModal] = useState(false);
+
+  const [music, setMusic] = useState(50);
+  const [sound, setSound] = useState(50);
+  const [petSound, setPetSound] = useState(50);
+  const [notificationSound, setNotificationSound] = useState(50);
+
+
+  const resetProfile = async () => {
+    await AsyncStorage.removeItem("PROFILE");
+
+    setUsername(DEFAULT_PROFILE.username);
+    setEmail(DEFAULT_PROFILE.email);
+    setMobile(DEFAULT_PROFILE.mobile);
+    setAvatar(DEFAULT_PROFILE.avatar);
+    setVerified(DEFAULT_PROFILE.verified);
+  };
+
 
   /* LOAD SAVED DATA */
   useEffect(() => {
@@ -50,6 +96,7 @@ export default function Settings() {
         setMobile(p.mobile);
         setAvatar(p.avatar);
         setVerified(p.verified);
+        setBgIndex(p.bgIndex ?? -1);
       }
     })();
   }, []);
@@ -64,6 +111,7 @@ export default function Settings() {
         mobile,
         avatar,
         verified,
+        bgIndex
       })
     );
   };
@@ -78,7 +126,7 @@ export default function Settings() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/bg.jpg")}
+      source={bgIndex === -1 ? DEFAULT_BG:BACKGROUNDS[bgIndex]}
       style={styles.bg}
     >
       <View style={styles.overlay}>
@@ -91,7 +139,7 @@ export default function Settings() {
         {/* PROFILE CARD */}
         <View style={styles.profileCard}>
           <View>
-            <Image source={AVATARS[avatar]} style={styles.avatarImage} />
+            <Image source={avatar === -1 ? DEFAULT_AVATAR : AVATARS[avatar]} style={styles.avatarImage} />
             <TouchableOpacity
               style={styles.editAvatar}
               onPress={() => setAvatarModal(true)}
@@ -103,6 +151,7 @@ export default function Settings() {
           <View style={styles.profileFields}>
             <TextInput
               placeholder="Username"
+              placeholderTextColor="#999"
               value={username}
               onChangeText={(t) => {
                 setUsername(t);
@@ -113,6 +162,7 @@ export default function Settings() {
 
             <TextInput
               placeholder="Email"
+              placeholderTextColor="#999"
               value={email}
               onChangeText={(t) => {
                 setEmail(t);
@@ -123,6 +173,7 @@ export default function Settings() {
 
             <TextInput
               placeholder="Mobile"
+              placeholderTextColor="#999"
               value={mobile}
               onChangeText={(t) => {
                 setMobile(t);
@@ -156,11 +207,12 @@ export default function Settings() {
         <SettingItem
           icon="moon"
           label="Theme"
-          onPress={() => navigation.navigate("Theme")}
+          onPress={() => setThemeModal(true)}
         />
         <SettingItem
           icon="volume-2"
           label="Sound"
+          onPress={() => setSoundModal(true)}
         />
         <SettingItem
           icon="log-out"
@@ -218,6 +270,74 @@ export default function Settings() {
             </View>
           </View>
         </Modal>
+        {/* THEME MODAL */}
+        <Modal transparent visible={themeModal} animationType="fade">
+          <View style={styles.modalBg}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Choose Theme</Text>
+                <TouchableOpacity
+  style={[
+    styles.defaultThemeBtn,
+    bgIndex === -1 && styles.themeSelected,
+  ]}
+  onPress={() => {
+    setBgIndex(-1);
+    saveProfile();
+    setThemeModal(false);
+  }}
+>
+  <Text style={{ fontWeight: "600" }}>Default Theme</Text>
+</TouchableOpacity>
+
+              <FlatList
+                data={BACKGROUNDS}
+                numColumns={2}
+                keyExtractor={(_, i) => i.toString()}
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.themeOption,
+                      bgIndex === index && styles.themeSelected,
+                    ]}
+                    onPress={() => {
+                      setBgIndex(index);
+                      saveProfile();
+                      setThemeModal(false);
+                    }}
+                  >
+                    <Image source={item} style={styles.themeImage} />
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </Modal>
+
+
+        {/* SOUND MODAL */}
+        <Modal transparent visible={soundModal} animationType="fade">
+          <View style={styles.modalBg}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Sound Settings</Text>
+
+              <SoundSlider label="Music" value={music} onChange={setMusic} />
+              <SoundSlider label="Sound" value={sound} onChange={setSound} />
+              <SoundSlider label="Pet Sound" value={petSound} onChange={setPetSound} />
+              <SoundSlider
+                label="Notification"
+                value={notificationSound}
+                onChange={setNotificationSound}
+              />
+
+              <TouchableOpacity
+                style={[styles.confirmBtn, { marginTop: 20 }]}
+                onPress={() => setSoundModal(false)}
+              >
+                <Text style={styles.confirmText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* LOGOUT MODAL */}
         <Modal transparent visible={logoutModal}>
@@ -230,7 +350,7 @@ export default function Settings() {
               <TouchableOpacity
                 style={styles.confirmBtn}
                 onPress={async () => {
-                  await AsyncStorage.clear();
+                  await resetProfile();
                   setLogoutModal(false);
                 }}
               >
@@ -268,10 +388,41 @@ function SettingItem({
     </TouchableOpacity>
   );
 }
+
+function SoundSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Text style={{ fontWeight: "600" }}>{label}</Text>
+        <Text style={{ color: "#777" }}>{value}%</Text>
+      </View>
+      <Slider
+        value={value}
+        onValueChange={onChange}
+        minimumValue={0}
+        maximumValue={100}
+        step={1}
+        minimumTrackTintColor={ACCENT}
+        maximumTrackTintColor="#ddd"
+        thumbTintColor={ACCENT}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  bg: { flex: 1,
-    height:"100%",
-    width:"100%"
+  bg: {
+    flex: 1,
+    height: "100%",
+    width: "100%"
   },
   overlay: {
     flex: 1,
@@ -359,4 +510,26 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 40,
   },
+  themeOption: {
+    width: "48%",
+    margin: "1%",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  themeImage: {
+    width: "100%",
+    height: 120,
+  },
+  themeSelected: {
+    borderWidth: 3,
+    borderColor: ACCENT,
+  },
+  defaultThemeBtn: {
+  padding: 14,
+  borderRadius: 12,
+  backgroundColor: "#f2f2f2",
+  marginBottom: 12,
+  alignItems: "center",
+},
+
 });

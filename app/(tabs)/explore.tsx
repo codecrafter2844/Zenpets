@@ -1,20 +1,11 @@
-import { Image } from 'react-native';
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Animated,
-  Dimensions,
-  Text,
-  Platform,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
-import { useRef, useState, useEffect } from 'react';
 import { ThemedText } from '@/components/themed-text';
-import { TextInput } from 'react-native';
-import { router } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useFocusEffect } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions, Image, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View
+} from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const MENU_WIDTH = SCREEN_WIDTH * 0.7;
@@ -27,6 +18,18 @@ const coinFrames = [
   require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/5.png'),
   require('../../assets/images/coins/Coins - ok_lavender/[1] Gold/6.png'),
 ];
+const BACKGROUNDS = [
+  require("../../assets/themes/bg1.jpg"),
+  require("../../assets/themes/bg2.jpg"),
+  require("../../assets/themes/bg3.jpg"),
+  require("../../assets/themes/bg4.jpg"),
+  require("../../assets/themes/bg5.jpg"),
+  require("../../assets/themes/bg6.jpg"),
+  require("../../assets/themes/bg7.jpg"),
+  require("../../assets/themes/bg8.jpg"),
+  require("../../assets/themes/bg9.png"),
+];
+const DEFAULT_BG = require("../../assets/images/bg.jpg");
 
 function RotatingCoin() {
   const frameIndex = useRef(0);        // 🔥 does NOT cause re-render
@@ -61,6 +64,24 @@ export default function ExploreScreen() {
     { id: number; text: string; done: boolean }[]
   >([]);
 
+  const [bgIndex, setBgIndex] = useState(-1);
+  useFocusEffect(
+    useRef(() => {
+      let isActive = true;
+
+      (async () => {
+        const data = await AsyncStorage.getItem("PROFILE");
+        if (data && isActive) {
+          const p = JSON.parse(data);
+          setBgIndex(p.bgIndex ?? -1);
+        }
+      })();
+
+      return () => {
+        isActive = false;
+      };
+    }).current
+  );
 
   const toggleTodo = (id: number) => {
     setTodos(todos.map(t =>
@@ -104,157 +125,163 @@ export default function ExploreScreen() {
         closeInput();
       }}
     >
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <ImageBackground
+        source={bgIndex === -1 ? DEFAULT_BG : BACKGROUNDS[bgIndex]}
+        style={styles.fullBg}
+        resizeMode="cover"
       >
-
-        {/* Background */}
-        <Image
-          source={require('../../assets/images/bg.jpg')}
-          style={styles.background}
-          resizeMode="cover"
-        />
-
-        {/* Hamburger Menu */}
-        <Pressable style={styles.menuButton} onPress={openMenu}>
-          <View style={styles.line} />
-          <View style={styles.line} />
-          <View style={styles.line} />
-        </Pressable>
-
-        {/* Profile Circle */}
-        <View style={styles.Pcircle} />
-        {/* Coin Capsule */}
-        <View style={styles.coinCapsule}>
-          <View style={styles.capsuleBody} />
-          <View style={styles.coinHolder}>
-            <RotatingCoin />
-          </View>
-        </View>
-
-
-        {/* TODO CARD */}
-        <View style={styles.todoCard}>
-
-          {/* Header */}
-          <View style={styles.todoHeader}>
-            <Text style={styles.todoTitle}>Today</Text>
-
-            <Pressable
-              style={styles.addButton}
-              onPress={() => setShowInput(true)}
-            >
-              <Text style={styles.addIcon}>＋</Text>
-            </Pressable>
-          </View>
-
-          {/* Todo List */}
-          {todos.map(todo => (
-            <Pressable
-              key={todo.id}
-              style={styles.todoItem}
-              onPress={() => toggleTodo(todo.id)} //complete on press
-              onLongPress={() => deleteTodo(todo.id)} //delete on long press
-              delayLongPress={400}
-            >
-
-              <View
-                style={[
-                  styles.checkbox,
-                  todo.done && styles.checkboxDone,
-                ]}
-              />
-              <Text
-                style={[
-                  styles.todoText,
-                  todo.done && styles.todoDone,
-                ]}
-              >
-                {todo.text}
-              </Text>
-            </Pressable>
-          ))}
-
-          {/* Inline Input */}
-          {showInput && (
-            <Pressable onPress={() => { }}>
-              <TextInput
-                autoFocus
-                value={newTask}
-                onChangeText={setNewTask}
-                placeholder="New task"
-                style={styles.inlineInput}
-
-                onSubmitEditing={() => {
-                  if (!newTask.trim()) {
-                    setShowInput(false);
-                    return;
-                  }
-
-                  setTodos(prev => [
-                    ...prev,
-                    { id: Date.now(), text: newTask.trim(), done: false },
-                  ]);
-                  setNewTask('');
-                  setShowInput(false);
-                }}
-              />
-            </Pressable>
-          )}
-        </View>
-
-
-        {/* Overlay */}
-        {menuOpen && (
-          <Pressable style={styles.overlay} onPress={closeMenu} />
-        )}
-
-        {/* Slide Menu */}
-        <Animated.View
-          style={[
-            styles.menu,
-            { transform: [{ translateX: slideAnim }] },
-          ]}
-
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+            closeInput();
+          }}
         >
-          <ThemedText type="title" style={styles.title}>
-            Menu
-          </ThemedText>
-          <Pressable style={[styles.menuItem]}
-            onPress={() => router.push('/(tabs)/planner')}
+          <KeyboardAvoidingView
+            style={styles.fullContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <Text style={styles.menuIcon}>🗓️</Text>
-            <Text style={styles.menuText}>Planner</Text>
-          </Pressable>
 
-          <Pressable style={styles.menuItem}
-            onPress={() => router.push('/(tabs)/streak')}>
-            <Text style={styles.menuIcon}>🔥</Text>
-            <Text style={styles.menuText}>Streak</Text>
-          </Pressable>
+            {/* Hamburger Menu */}
+            <Pressable style={styles.menuButton} onPress={openMenu}>
+              <View style={styles.line} />
+              <View style={styles.line} />
+              <View style={styles.line} />
+            </Pressable>
 
-          <Pressable style={[styles.menuItem]}
-            onPress={() => router.push('/(tabs)/milestone')}>
-            <Text style={styles.menuIcon}>🪨</Text>
-            <Text style={styles.menuText}>Milestone</Text>
-          </Pressable>
+            {/* Profile Circle */}
+            <View style={styles.Pcircle} />
+            {/* Coin Capsule */}
+            <View style={styles.coinCapsule}>
+              <View style={styles.capsuleBody} />
+              <View style={styles.coinHolder}>
+                <RotatingCoin />
+              </View>
+            </View>
 
-          <Pressable
-            style={styles.menuItem}
-            onPress={() => router.push('/(tabs)/petshop/petshop')}
-          >
-            <Text style={styles.menuIcon}>🐾</Text>
-            <Text style={styles.menuText}>Pet Shop</Text>
-          </Pressable>
 
-          <Pressable style={styles.menuItem}
-            onPress={() => router.push('/(tabs)/settings')}>
-            <Text style={styles.menuIcon}>⚙️</Text>
-            <Text style={styles.menuText}>Settings</Text>
-          </Pressable>
-        </Animated.View>
-      </KeyboardAvoidingView>
+            {/* TODO CARD */}
+            <View style={styles.todoCard}>
+
+              {/* Header */}
+              <View style={styles.todoHeader}>
+                <Text style={styles.todoTitle}>Today</Text>
+
+                <Pressable
+                  style={styles.addButton}
+                  onPress={() => setShowInput(true)}
+                >
+                  <Text style={styles.addIcon}>＋</Text>
+                </Pressable>
+              </View>
+
+              {/* Todo List */}
+              {todos.map(todo => (
+                <Pressable
+                  key={todo.id}
+                  style={styles.todoItem}
+                  onPress={() => toggleTodo(todo.id)} //complete on press
+                  onLongPress={() => deleteTodo(todo.id)} //delete on long press
+                  delayLongPress={400}
+                >
+
+                  <View
+                    style={[
+                      styles.checkbox,
+                      todo.done && styles.checkboxDone,
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.todoText,
+                      todo.done && styles.todoDone,
+                    ]}
+                  >
+                    {todo.text}
+                  </Text>
+                </Pressable>
+              ))}
+
+              {/* Inline Input */}
+              {showInput && (
+                <Pressable onPress={() => { }}>
+                  <TextInput
+                    autoFocus
+                    value={newTask}
+                    onChangeText={setNewTask}
+                    placeholder="New task"
+                    style={styles.inlineInput}
+
+                    onSubmitEditing={() => {
+                      if (!newTask.trim()) {
+                        setShowInput(false);
+                        return;
+                      }
+
+                      setTodos(prev => [
+                        ...prev,
+                        { id: Date.now(), text: newTask.trim(), done: false },
+                      ]);
+                      setNewTask('');
+                      setShowInput(false);
+                    }}
+                  />
+                </Pressable>
+              )}
+            </View>
+
+
+            {/* Overlay */}
+            {menuOpen && (
+              <Pressable style={styles.overlay} onPress={closeMenu} />
+            )}
+
+            {/* Slide Menu */}
+            <Animated.View
+              style={[
+                styles.menu,
+                { transform: [{ translateX: slideAnim }] },
+              ]}
+
+            >
+              <ThemedText type="title" style={styles.title}>
+                Menu
+              </ThemedText>
+              <Pressable style={[styles.menuItem]}
+                onPress={() => router.push('/(tabs)/planner')}
+              >
+                <Text style={styles.menuIcon}>🗓️</Text>
+                <Text style={styles.menuText}>Planner</Text>
+              </Pressable>
+
+              <Pressable style={styles.menuItem}
+                onPress={() => router.push('/(tabs)/streak')}>
+                <Text style={styles.menuIcon}>🔥</Text>
+                <Text style={styles.menuText}>Streak</Text>
+              </Pressable>
+
+              <Pressable style={[styles.menuItem]}
+                onPress={() => router.push('/(tabs)/milestone')}>
+                <Text style={styles.menuIcon}>🪨</Text>
+                <Text style={styles.menuText}>Milestone</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => router.push('/(tabs)/petshop/petshop')}
+              >
+                <Text style={styles.menuIcon}>🐾</Text>
+                <Text style={styles.menuText}>Pet Shop</Text>
+              </Pressable>
+
+              <Pressable style={styles.menuItem}
+                onPress={() => router.push('/(tabs)/settings')}>
+                <Text style={styles.menuIcon}>⚙️</Text>
+                <Text style={styles.menuText}>Settings</Text>
+              </Pressable>
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </ImageBackground>
     </TouchableWithoutFeedback>
 
   );
@@ -265,11 +292,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  background: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
+  fullBg: {
+  flex: 1,
+  width: "100%",
+  height: "100%",
+},
+fullContainer: {
+  flex: 1,
+  width: "100%",
+},
 
   /* Hamburger */
   menuButton: {
@@ -354,6 +385,8 @@ const styles = StyleSheet.create({
   /* Overlay */
   overlay: {
     position: 'absolute',
+    top:0,
+    left:0,
     width: '100%',
     height: '100%',
     backgroundColor: 'rgba(0,0,0,0.3)',
